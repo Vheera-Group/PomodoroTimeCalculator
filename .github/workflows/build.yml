@@ -166,9 +166,14 @@ jobs:
         with:
           name: PomodoroCalculator-JAR
 
+      - name: Prepare input directory for jpackage
+        run: |
+          mkdir input
+          cp PomodoroCalculator.jar input/
+
       - name: Create AppImage with jpackage
         run: |
-          jpackage --input . --name PomodoroCalculator --main-jar PomodoroCalculator.jar --main-class Main --type app-image
+          jpackage --input input --name PomodoroCalculator --main-jar PomodoroCalculator.jar --main-class Main --type app-image
 
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
