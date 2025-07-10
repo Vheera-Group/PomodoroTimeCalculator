@@ -30,7 +30,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Vheera-Group/PomodoroTimeCalculator">
-    <img src="src/images/logo.png" alt="Logo" width="80" height="80">
+    <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
 <h3 align="center">Pomodoro-Time-Calculator</h3>
