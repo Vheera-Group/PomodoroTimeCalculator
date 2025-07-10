@@ -28,6 +28,9 @@ jobs:
       - name: Compile Java files
         run: javac -d out Main.java models/PomodoroTime.java services/File.java
 
+      - name: Create manifest file
+        run: echo "Main-Class: Main" > manifest.txt
+
       - name: Package JAR
         run: jar cfm PomodoroCalculator.jar manifest.txt -C out .
 
@@ -87,11 +90,14 @@ jobs:
         run: |
           jpackage --input . --name PomodoroCalculator --main-jar PomodoroCalculator.jar --main-class Main --type deb
 
+      - name: List generated files
+        run: ls -la pomodorocalculator*.deb || ls -la *.deb || echo "No DEB files found"
+
       - name: Upload DEB artifact
         uses: actions/upload-artifact@v4
         with:
           name: PomodoroCalculator-DEB
-          path: PomodoroCalculator*.deb
+          path: "*.deb"
 
   build-pkg:
     runs-on: macos-latest
@@ -115,11 +121,14 @@ jobs:
         run: |
           jpackage --input . --name PomodoroCalculator --main-jar PomodoroCalculator.jar --main-class Main --type pkg
 
+      - name: List generated files
+        run: ls -la pomodorocalculator*.pkg || ls -la *.pkg || echo "No PKG files found"
+
       - name: Upload PKG artifact
         uses: actions/upload-artifact@v4
         with:
           name: PomodoroCalculator-PKG
-          path: PomodoroCalculator*.pkg
+          path: "*.pkg"
 
   build-rpm:
     runs-on: ubuntu-latest
@@ -145,11 +154,14 @@ jobs:
           sudo apt-get install -y rpm
           jpackage --input . --name PomodoroCalculator --main-jar PomodoroCalculator.jar --main-class Main --type rpm
 
+      - name: List generated files
+        run: ls -la pomodorocalculator*.rpm || ls -la *.rpm || echo "No RPM files found"
+
       - name: Upload RPM artifact
         uses: actions/upload-artifact@v4
         with:
           name: PomodoroCalculator-RPM
-          path: PomodoroCalculator*.rpm
+          path: "*.rpm"
 
   build-appimage:
     runs-on: ubuntu-latest
@@ -193,6 +205,9 @@ jobs:
         with:
           path: artifacts
 
+      - name: List artifacts directory
+        run: find artifacts -type f -name "*" | head -20
+
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -224,35 +239,35 @@ jobs:
           asset_name: PomodoroCalculator.exe
           asset_content_type: application/vnd.microsoft.portable-executable
 
-      - name: Upload DEB to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/PomodoroCalculator-DEB/*.deb
-          asset_name: PomodoroCalculator.deb
-          asset_content_type: application/vnd.debian.binary-package
+      - name: Find and upload DEB
+        run: |
+          DEB_FILE=$(find artifacts/PomodoroCalculator-DEB -name "*.deb" | head -1)
+          if [ -n "$DEB_FILE" ]; then
+            curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                 -H "Content-Type: application/vnd.debian.binary-package" \
+                 --data-binary @"$DEB_FILE" \
+                 "${{ steps.create_release.outputs.upload_url }}?name=PomodoroCalculator.deb"
+          fi
 
-      - name: Upload RPM to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/PomodoroCalculator-RPM/*.rpm
-          asset_name: PomodoroCalculator.rpm
-          asset_content_type: application/x-rpm
+      - name: Find and upload RPM
+        run: |
+          RPM_FILE=$(find artifacts/PomodoroCalculator-RPM -name "*.rpm" | head -1)
+          if [ -n "$RPM_FILE" ]; then
+            curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                 -H "Content-Type: application/x-rpm" \
+                 --data-binary @"$RPM_FILE" \
+                 "${{ steps.create_release.outputs.upload_url }}?name=PomodoroCalculator.rpm"
+          fi
 
-      - name: Upload PKG to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/PomodoroCalculator-PKG/*.pkg
-          asset_name: PomodoroCalculator.pkg
-          asset_content_type: application/octet-stream
+      - name: Find and upload PKG
+        run: |
+          PKG_FILE=$(find artifacts/PomodoroCalculator-PKG -name "*.pkg" | head -1)
+          if [ -n "$PKG_FILE" ]; then
+            curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                 -H "Content-Type: application/octet-stream" \
+                 --data-binary @"$PKG_FILE" \
+                 "${{ steps.create_release.outputs.upload_url }}?name=PomodoroCalculator.pkg"
+          fi
 
       - name: Upload AppImage to Release
         uses: actions/upload-release-asset@v1
