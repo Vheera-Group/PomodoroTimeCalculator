@@ -29,7 +29,8 @@ jobs:
         run: javac -d out Main.java models/PomodoroTime.java services/File.java
 
       - name: Create manifest file
-        run: echo "Main-Class: Main" > manifest.txt
+        run: |
+          echo 'Main-Class: Main' > manifest.txt
 
       - name: Package JAR
         run: jar cfm PomodoroCalculator.jar manifest.txt -C out .
