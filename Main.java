@@ -1,11 +1,11 @@
-package src;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.time.Duration;
 import java.util.Locale;
-import src.models.PomodoroTime;
-import src.services.File;
+import models.PomodoroTime;
+import services.File;
 
 public class Main {
     public static void main(String[] args) {
